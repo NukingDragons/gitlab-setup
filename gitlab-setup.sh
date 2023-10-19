@@ -5,12 +5,6 @@ GITLAB_HOME=/srv/gitlab
 
 # If the user doesn't supply a hostname, use the IP instead
 CURRENT_IP=$(ip -br a | grep $(ip route | grep default | cut -d' ' -f5) 2>/dev/null | sed 's/\(\s\)\s*/\1/g' | cut -d' ' -f3 | cut -d'/' -f1)
-if [[ -z $CURRENT_IP ]]
-then
-	echo "Failed to grab default hostname!"
-	echo "Please supply a hostname via --hostname"
-	exit 1
-fi
 HOSTNAME=$CURRENT_IP
 
 # 13.8.6-ce.0 is vulnerable to CVE-2021-22205
@@ -92,6 +86,13 @@ do
 	esac
 	shift
 done
+
+if [[ -z $CURRENT_IP && -z $HOSTNAME]]
+then
+	echo "Failed to grab default hostname!"
+	echo "Please supply a hostname via --hostname"
+	exit 1
+fi
 
 if [[ ! -z $IMAGE_FILE ]]
 then
