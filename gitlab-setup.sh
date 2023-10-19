@@ -4,7 +4,13 @@
 GITLAB_HOME=/srv/gitlab
 
 # If the user doesn't supply a hostname, use the IP instead
-CURRENT_IP=$(ip -br a | grep $(ip route | grep default | cut -d' ' -f5) | sed 's/\(\s\)\s*/\1/g' | cut -d' ' -f3 | cut -d'/' -f1)
+CURRENT_IP=$(ip -br a | grep $(ip route | grep default | cut -d' ' -f5) 2>/dev/null | sed 's/\(\s\)\s*/\1/g' | cut -d' ' -f3 | cut -d'/' -f1)
+if [[ -z $CURRENT_IP ]]
+then
+	echo "Failed to grab default hostname!"
+	echo "Please supply a hostname via --hostname"
+	exit 1
+fi
 HOSTNAME=$CURRENT_IP
 
 # 13.8.6-ce.0 is vulnerable to CVE-2021-22205
@@ -87,21 +93,36 @@ do
 	shift
 done
 
-echo "Hostname set to: \"$HOSTNAME\""
-echo "Version set to: \"$VERSION\""
-echo "Gitlab home set to: \"$GITLAB_HOME\""
-echo "Checking if version is already installed..."
-if [[ -z "$(sudo docker image ls | grep gitlab-ce | grep $VERSION)" ]]
+if [[ ! -z $IMAGE_FILE ]]
 then
-	if [[ -z $IMAGE_FILE ]]
+	echo "Attempting to load $IMAGE_FILE"
+	sudo docker load -i $IMAGE_FILE
+	echo "Pulling version from image file"
+	VERSION=$(sudo docker images | head -2 | tail +2 | sed 's/\(\s\)\s*/\1/g' | cut -d' ' -f2)
+	echo "Checking if image was loaded correctly"
+	if [[ -z "$(sudo docker image ls | grep gitlab-ce | grep $VERSION)" ]]
+	then
+		echo "Failed to import image!"
+		exit 1
+	fi
+else
+	echo "Checking if version is already installed..."
+	if [[ -z "$(sudo docker image ls | grep gitlab-ce | grep $VERSION)" ]]
 	then
 		echo "Attempting to pull the image"
 		sudo docker pull gitlab/gitlab-ce:$VERSION
-	else
-		echo "Attempting to load $IMAGE_FILE"
-		sudo docker load -i $IMAGE_FILE
+	fi
+	echo "Checking if version was installed correctly"
+	if [[ -z "$(sudo docker image ls | grep gitlab-ce | grep $VERSION)" ]]
+	then
+		echo "Failed to pull image!"
+		exit 1
 	fi
 fi
+
+echo "Hostname set to: \"$HOSTNAME\""
+echo "Version set to: \"$VERSION\""
+echo "Gitlab home set to: \"$GITLAB_HOME\""
 
 # Optionally export the image
 if [[ ! -z $EXPORT ]]
