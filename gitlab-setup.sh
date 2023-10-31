@@ -87,7 +87,7 @@ do
 	shift
 done
 
-if [[ -z $CURRENT_IP && -z $HOSTNAME]]
+if [[ -z $CURRENT_IP && -z $HOSTNAME ]]
 then
 	echo "Failed to grab default hostname!"
 	echo "Please supply a hostname via --hostname"
