@@ -17,7 +17,7 @@ function usage()
 	printf "Usage: gitlab-setup.sh [options]\n"
 	printf "Options:\n"
 	printf "\t-h,--help\t\tShow this help\n"
-	printf "\t-v,--version\t\tSet the gitlab verion. Defaults to 13.8.6-ce.0\n"
+	printf "\t-v,--version\t\tSet the gitlab version\n"
 	printf "\t-H,--hostname\t\tSet the hostname for the gitlab container\n"
 	printf "\t-e,--export\t\tExport the image for offline install\n"
 	printf "\t-i,--image-file\t\tThe image file to load for an offline installation\n"
