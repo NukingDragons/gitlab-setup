@@ -21,8 +21,7 @@ HOSTNAME=$CURRENT_IP
 
 # 13.8.6-ce.0 is vulnerable to CVE-2021-22205
 # Assume latest version unless user specifies
-VULN_VERSION=latest
-VERSION=$VULN_VERSION
+VERSION=latest
 
 function usage()
 {
@@ -325,6 +324,16 @@ then
 		sudo docker save -o $(pwd)/gitlab-ce-$VERSION.docker gitlab/gitlab-ce:$VERSION
 		sudo chown $USER:$USER $(pwd)/gitlab-ce-$VERSION.docker
 	fi
+fi
+
+# Check if an existing gitlab is installed
+OLD_VERSION=$(sudo docker container ls -a | grep 'gitlab$' | sed 's/\(\s\)\s*/\1/g' | cut -d' ' -f2 | cut -d':' -f2)
+if [[ ! -z $OLD_VERSION ]]
+then
+	sudo docker stop gitlab || true
+
+	echo "Renaming old gitlab instance to \"gitlab-$OLD_VERSION\""
+	sudo docker rename gitlab gitlab-$OLD_VERSION
 fi
 
 # Run if fetch-only wasn't supplied
